@@ -51,6 +51,31 @@ def element_info(el):
     }
 
 
+
+def semantic_parent(el):
+    """Return the nearest decomposing parent IfcProduct, if present."""
+    cur=el
+    seen=set()
+    while cur is not None:
+        try:
+            cid=int(cur.id())
+            if cid in seen: break
+            seen.add(cid)
+        except Exception:
+            break
+        parent=None
+        try:
+            for rel in getattr(cur,'Decomposes',[]) or []:
+                obj=getattr(rel,'RelatingObject',None)
+                if obj is not None and obj.is_a('IfcProduct'):
+                    parent=obj; break
+        except Exception:
+            parent=None
+        if parent is None: break
+        cur=parent
+    return cur if cur is not el else None
+
+
 def load_ifc(path, progress=None):
     model = ifcopenshell.open(str(path))
     if progress:
@@ -139,6 +164,26 @@ def load_ifc(path, progress=None):
     total_products=len(products)
     geom_products=len(objects)
     density=round(100*geom_products/max(1,total_products),1)
+
+    direct_geometry_class_counts={}
+    semantic_geometry_class_counts={}
+    rolled_part_count=0
+    for o in objects:
+        try:
+            el=model.by_id(int(o.get('id',0)))
+        except Exception:
+            el=None
+        if el is None: continue
+        direct=el.is_a()
+        direct_geometry_class_counts[direct]=direct_geometry_class_counts.get(direct,0)+1
+        semantic=direct
+        if direct=='IfcBuildingElementPart':
+            parent=semantic_parent(el)
+            if parent is not None:
+                semantic=parent.is_a()
+                rolled_part_count += 1
+        semantic_geometry_class_counts[semantic]=semantic_geometry_class_counts.get(semantic,0)+1
+
     product_class_counts={}
     for p in products:
         if p is not None:
@@ -156,6 +201,9 @@ def load_ifc(path, progress=None):
       'classes':classes,
       'productClasses':product_classes,
       'productClassCounts':product_class_counts,
+      'directGeometryClassCounts':direct_geometry_class_counts,
+      'semanticGeometryClassCounts':semantic_geometry_class_counts,
+      'rolledBuildingElementParts':rolled_part_count,
       'objects':objects,
       'positions':verts,
       'indices':faces
