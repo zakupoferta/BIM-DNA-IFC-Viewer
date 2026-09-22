@@ -139,7 +139,27 @@ def load_ifc(path, progress=None):
     total_products=len(products)
     geom_products=len(objects)
     density=round(100*geom_products/max(1,total_products),1)
-    product_classes=sorted({p.is_a() for p in products if p is not None})
+    product_class_counts={}
+    for p in products:
+        if p is not None:
+            t=p.is_a(); product_class_counts[t]=product_class_counts.get(t,0)+1
+    product_classes=sorted(product_class_counts)
+
+    # Full semantic product catalogue. This is the source of truth for IFC class
+    # counts and editing. Geometry is only a visual representation.
+    geometry_ids={int(o.get('id',0)) for o in objects if o.get('id')}
+    product_catalog=[]
+    for p in products:
+        if p is None: continue
+        try: pid=int(p.id())
+        except Exception: continue
+        product_catalog.append({
+            'id':pid,
+            'guid':safe(getattr(p,'GlobalId','')),
+            'type':p.is_a(),
+            'name':safe(getattr(p,'Name','')),
+            'hasGeometry':pid in geometry_ids
+        })
 
     return {
       'schema':getattr(model,'schema','UNKNOWN'),
@@ -151,6 +171,8 @@ def load_ifc(path, progress=None):
       'informationDensity':density,
       'classes':classes,
       'productClasses':product_classes,
+      'productClassCounts':product_class_counts,
+      'productCatalog':product_catalog,
       'objects':objects,
       'positions':verts,
       'indices':faces
@@ -342,6 +364,9 @@ class Handler(SimpleHTTPRequestHandler):
                 if not job or not job.get('path'): raise ValueError('Nie znaleziono aktywnego modelu.')
                 path=Path(job['path']); model=ifcopenshell.open(str(path))
                 ids=[int(x) for x in payload.get('expressIds',[]) if int(x)>0]
+                source_class=str(payload.get('sourceClass','')).strip()
+                if not ids and source_class:
+                    ids=[int(x.id()) for x in model.by_type(source_class)]
                 if not ids: raise ValueError('Nie wybrano elementów do zmiany.')
                 target_class=str(payload.get('ifcClass','')).strip()
                 if not target_class.startswith('Ifc'): raise ValueError('Nieprawidłowa klasa IFC.')
@@ -349,8 +374,14 @@ class Handler(SimpleHTTPRequestHandler):
                 targets=[x for x in targets if x is not None and x.is_a('IfcProduct')]
                 count=reassign_class(model,targets,target_class)
                 model.write(str(path))
-                result=reload_job_model(jid)
-                send_json(self,200,{'ok':True,'count':count,'message':f'Zmieniono klasę IFC dla {count} elementów na {target_class}.','result':result})
+                # Do not rebuild/send the entire mesh inside this POST.
+                # Large IFCs can keep the HTTP request open long enough for the browser
+                # to report "Failed to fetch". Start a normal background geometry job instead.
+                new_jid=uuid.uuid4().hex
+                with LOCK:
+                    JOBS[new_jid]={'status':'processing','filename':job.get('filename','model.ifc'),'started':time.time(),'phase':'starting','processed':0,'total':0,'message':'Odświeżam model po zmianie klasy...','path':str(path)}
+                threading.Thread(target=self.worker,args=(new_jid,path),daemon=True).start()
+                send_json(self,202,{'ok':True,'count':count,'job':new_jid,'message':f'Zmieniono klasę IFC dla {count} elementów na {target_class}. Odświeżam widok...'},compress=False)
             except Exception as e:
                 traceback.print_exc(); send_json(self,500,{'error':str(e)},compress=False)
             return
