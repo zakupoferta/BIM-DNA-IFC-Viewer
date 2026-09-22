@@ -6,6 +6,8 @@ from pathlib import Path
 try:
     import ifcopenshell
     import ifcopenshell.geom
+    import ifcopenshell.api
+    import ifcopenshell.util.schema
 except Exception as e:
     print('BRAK IFCOPENSHELL:', e)
     print('Uruchom instalator START_IFC_VIEWER_4_0.bat')
@@ -137,6 +139,7 @@ def load_ifc(path, progress=None):
     total_products=len(products)
     geom_products=len(objects)
     density=round(100*geom_products/max(1,total_products),1)
+    product_classes=sorted({p.is_a() for p in products if p is not None})
 
     return {
       'schema':getattr(model,'schema','UNKNOWN'),
@@ -147,6 +150,7 @@ def load_ifc(path, progress=None):
       'vertexCount':len(verts)//3,
       'informationDensity':density,
       'classes':classes,
+      'productClasses':product_classes,
       'objects':objects,
       'positions':verts,
       'indices':faces
@@ -260,6 +264,16 @@ def delete_property(model, targets, pset_name, prop_name):
     return changed
 
 
+def reassign_class(model, targets, ifc_class):
+    changed=0
+    for el in targets:
+        # Official IfcOpenShell API keeps IFC relationships/attributes consistent
+        # when changing the entity declaration.
+        ifcopenshell.api.run("root.reassign_class", model, product=el, ifc_class=ifc_class)
+        changed += 1
+    return changed
+
+
 def reload_job_model(jid):
     with LOCK: job=JOBS.get(jid)
     if not job: raise ValueError('Nie znaleziono aktywnego modelu.')
@@ -319,6 +333,27 @@ class Handler(SimpleHTTPRequestHandler):
         super().do_GET()
 
     def do_POST(self):
+        if self.path=='/api/class/reassign':
+            try:
+                n=int(self.headers.get('Content-Length','0'))
+                payload=json.loads(self.rfile.read(n).decode('utf-8')) if n else {}
+                jid=str(payload.get('job',''))
+                with LOCK: job=JOBS.get(jid)
+                if not job or not job.get('path'): raise ValueError('Nie znaleziono aktywnego modelu.')
+                path=Path(job['path']); model=ifcopenshell.open(str(path))
+                ids=[int(x) for x in payload.get('expressIds',[]) if int(x)>0]
+                if not ids: raise ValueError('Nie wybrano elementów do zmiany.')
+                target_class=str(payload.get('ifcClass','')).strip()
+                if not target_class.startswith('Ifc'): raise ValueError('Nieprawidłowa klasa IFC.')
+                targets=[model.by_id(x) for x in ids]
+                targets=[x for x in targets if x is not None and x.is_a('IfcProduct')]
+                count=reassign_class(model,targets,target_class)
+                model.write(str(path))
+                result=reload_job_model(jid)
+                send_json(self,200,{'ok':True,'count':count,'message':f'Zmieniono klasę IFC dla {count} elementów na {target_class}.','result':result})
+            except Exception as e:
+                traceback.print_exc(); send_json(self,500,{'error':str(e)},compress=False)
+            return
         if self.path in ('/api/property/set','/api/property/delete'):
             try:
                 n=int(self.headers.get('Content-Length','0'))
