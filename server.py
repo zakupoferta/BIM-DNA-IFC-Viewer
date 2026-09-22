@@ -145,6 +145,22 @@ def load_ifc(path, progress=None):
             t=p.is_a(); product_class_counts[t]=product_class_counts.get(t,0)+1
     product_classes=sorted(product_class_counts)
 
+    # Full semantic product catalogue. This is the source of truth for IFC class
+    # counts and editing. Geometry is only a visual representation.
+    geometry_ids={int(o.get('id',0)) for o in objects if o.get('id')}
+    product_catalog=[]
+    for p in products:
+        if p is None: continue
+        try: pid=int(p.id())
+        except Exception: continue
+        product_catalog.append({
+            'id':pid,
+            'guid':safe(getattr(p,'GlobalId','')),
+            'type':p.is_a(),
+            'name':safe(getattr(p,'Name','')),
+            'hasGeometry':pid in geometry_ids
+        })
+
     return {
       'schema':getattr(model,'schema','UNKNOWN'),
       'entityCount':entity_count,
@@ -156,6 +172,7 @@ def load_ifc(path, progress=None):
       'classes':classes,
       'productClasses':product_classes,
       'productClassCounts':product_class_counts,
+      'productCatalog':product_catalog,
       'objects':objects,
       'positions':verts,
       'indices':faces
@@ -347,6 +364,9 @@ class Handler(SimpleHTTPRequestHandler):
                 if not job or not job.get('path'): raise ValueError('Nie znaleziono aktywnego modelu.')
                 path=Path(job['path']); model=ifcopenshell.open(str(path))
                 ids=[int(x) for x in payload.get('expressIds',[]) if int(x)>0]
+                source_class=str(payload.get('sourceClass','')).strip()
+                if not ids and source_class:
+                    ids=[int(x.id()) for x in model.by_type(source_class)]
                 if not ids: raise ValueError('Nie wybrano elementów do zmiany.')
                 target_class=str(payload.get('ifcClass','')).strip()
                 if not target_class.startswith('Ifc'): raise ValueError('Nieprawidłowa klasa IFC.')
