@@ -51,6 +51,34 @@ def element_info(el):
     }
 
 
+
+def logical_parent(el):
+    """Find the nearest meaningful parent product for geometry ownership."""
+    cur=el
+    seen=set()
+    while cur is not None:
+        try:
+            cid=int(cur.id())
+            if cid in seen: break
+            seen.add(cid)
+        except Exception:
+            break
+        parent=None
+        # IFC decomposition (IfcRelAggregates / IfcRelNests inverse).
+        for inv_name in ('Decomposes','Nests'):
+            try:
+                for rel in getattr(cur,inv_name,[]) or []:
+                    obj=getattr(rel,'RelatingObject',None)
+                    if obj is not None and obj.is_a('IfcProduct'):
+                        parent=obj; break
+            except Exception:
+                pass
+            if parent is not None: break
+        if parent is None: break
+        cur=parent
+    return cur if cur is not el else None
+
+
 def load_ifc(path, progress=None):
     model = ifcopenshell.open(str(path))
     if progress:
@@ -99,7 +127,16 @@ def load_ifc(path, progress=None):
                 try: el=model.by_id(eid)
                 except Exception: el=None
                 if vs and fs and el is not None and el.is_a('IfcProduct'):
-                    bucket=buckets.setdefault(eid, {'el':el,'verts':[],'faces':[]})
+                    owner=el
+                    # Archicad often exports visible sub-geometry as IfcBuildingElementPart.
+                    # Roll that geometry up to the logical parent product for selection.
+                    if el.is_a('IfcBuildingElementPart'):
+                        parent=logical_parent(el)
+                        if parent is not None:
+                            owner=parent
+                    owner_id=int(owner.id())
+                    bucket=buckets.setdefault(owner_id, {'el':owner,'verts':[],'faces':[],'sourceIds':set()})
+                    bucket['sourceIds'].add(eid)
                     local_offset=len(bucket['verts'])//3
                     bucket['verts'].extend(vs)
                     bucket['faces'].extend([int(x)+local_offset for x in fs])
@@ -121,10 +158,36 @@ def load_ifc(path, progress=None):
         info['vertexCount']=len(vs)//3
         info['indexStart']=len(faces)
         info['indexCount']=len(fs)
+        info['sourceIds']=sorted(bucket.get('sourceIds',[]))
         verts.extend(vs)
         faces.extend([int(x)+offset for x in fs])
         objects.append(info)
         offset += len(vs)//3
+
+    # Some iterator configurations omit spatial structure products such as IfcSite.
+    # Add their geometry explicitly when it exists and was not already returned.
+    existing_ids={int(o.get('id',0)) for o in objects if o.get('id')}
+    for site in model.by_type('IfcSite'):
+        try:
+            sid=int(site.id())
+            if sid in existing_ids: continue
+            shape=ifcopenshell.geom.create_shape(settings,site)
+            geom=shape.geometry
+            vs=list(geom.verts); fs=list(geom.faces)
+            if not vs or not fs: continue
+            info=element_info(site)
+            info['vertexStart']=offset
+            info['vertexCount']=len(vs)//3
+            info['indexStart']=len(faces)
+            info['indexCount']=len(fs)
+            info['sourceIds']=[sid]
+            verts.extend(vs)
+            faces.extend([int(x)+offset for x in fs])
+            objects.append(info)
+            offset += len(vs)//3
+            existing_ids.add(sid)
+        except Exception as exc:
+            print(f"IfcSite geometry warning: {exc}")
 
     if progress:
         progress(phase="metrics", processed=total, total=total,
