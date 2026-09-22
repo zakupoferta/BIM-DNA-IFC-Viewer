@@ -139,7 +139,11 @@ def load_ifc(path, progress=None):
     total_products=len(products)
     geom_products=len(objects)
     density=round(100*geom_products/max(1,total_products),1)
-    product_classes=sorted({p.is_a() for p in products if p is not None})
+    product_class_counts={}
+    for p in products:
+        if p is not None:
+            t=p.is_a(); product_class_counts[t]=product_class_counts.get(t,0)+1
+    product_classes=sorted(product_class_counts)
 
     return {
       'schema':getattr(model,'schema','UNKNOWN'),
@@ -151,6 +155,7 @@ def load_ifc(path, progress=None):
       'informationDensity':density,
       'classes':classes,
       'productClasses':product_classes,
+      'productClassCounts':product_class_counts,
       'objects':objects,
       'positions':verts,
       'indices':faces
@@ -349,8 +354,14 @@ class Handler(SimpleHTTPRequestHandler):
                 targets=[x for x in targets if x is not None and x.is_a('IfcProduct')]
                 count=reassign_class(model,targets,target_class)
                 model.write(str(path))
-                result=reload_job_model(jid)
-                send_json(self,200,{'ok':True,'count':count,'message':f'Zmieniono klasę IFC dla {count} elementów na {target_class}.','result':result})
+                # Do not rebuild/send the entire mesh inside this POST.
+                # Large IFCs can keep the HTTP request open long enough for the browser
+                # to report "Failed to fetch". Start a normal background geometry job instead.
+                new_jid=uuid.uuid4().hex
+                with LOCK:
+                    JOBS[new_jid]={'status':'processing','filename':job.get('filename','model.ifc'),'started':time.time(),'phase':'starting','processed':0,'total':0,'message':'Odświeżam model po zmianie klasy...','path':str(path)}
+                threading.Thread(target=self.worker,args=(new_jid,path),daemon=True).start()
+                send_json(self,202,{'ok':True,'count':count,'job':new_jid,'message':f'Zmieniono klasę IFC dla {count} elementów na {target_class}. Odświeżam widok...'},compress=False)
             except Exception as e:
                 traceback.print_exc(); send_json(self,500,{'error':str(e)},compress=False)
             return
