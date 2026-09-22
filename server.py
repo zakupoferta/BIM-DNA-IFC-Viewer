@@ -29,25 +29,56 @@ def element_info(el):
     def attr(name):
         try: return safe(getattr(el, name, ''))
         except Exception: return ''
-    psets = {}
+
+    # All direct scalar IFC attributes.
+    attributes={}
     try:
-        for rel in getattr(el, 'IsDefinedBy', []) or []:
-            pd = getattr(rel, 'RelatingPropertyDefinition', None)
-            if not pd or not pd.is_a('IfcPropertySet'): continue
-            vals = {}
-            for p in getattr(pd, 'HasProperties', []) or []:
-                try:
-                    val = p.NominalValue.wrappedValue if p.NominalValue else ''
-                except Exception:
-                    val = ''
-                vals[p.Name] = safe(val)
-            psets[pd.Name] = vals
+        info=el.get_info(recursive=False)
+        for k,v in info.items():
+            if k in ('id','type') or v is None: continue
+            if isinstance(v,(str,int,float,bool)):
+                attributes[k]=safe(v)
     except Exception:
         pass
+
+    psets={}
+    quantities={}
+    try:
+        for rel in getattr(el, 'IsDefinedBy', []) or []:
+            pd=getattr(rel, 'RelatingPropertyDefinition', None)
+            if not pd: continue
+            if pd.is_a('IfcPropertySet'):
+                vals={}
+                for p in getattr(pd,'HasProperties',[]) or []:
+                    try:
+                        if p.is_a('IfcPropertySingleValue'):
+                            val=p.NominalValue.wrappedValue if p.NominalValue else ''
+                        else:
+                            val=str(p)
+                    except Exception:
+                        val=''
+                    vals[str(getattr(p,'Name',''))]=safe(val)
+                psets[str(getattr(pd,'Name',''))]=vals
+            elif pd.is_a('IfcElementQuantity'):
+                vals={}
+                for q in getattr(pd,'Quantities',[]) or []:
+                    val=''
+                    try:
+                        qi=q.get_info(recursive=False)
+                        for key in ('LengthValue','AreaValue','VolumeValue','CountValue','WeightValue','TimeValue'):
+                            if key in qi and qi[key] is not None:
+                                val=qi[key]; break
+                    except Exception:
+                        pass
+                    vals[str(getattr(q,'Name',''))]=safe(val)
+                quantities[str(getattr(pd,'Name',''))]=vals
+    except Exception:
+        pass
+
     return {
-        'id': el.id(), 'guid': attr('GlobalId'), 'type': el.is_a(),
-        'name': attr('Name'), 'description': attr('Description'), 'tag': attr('Tag'),
-        'psets': psets
+        'id':el.id(),'guid':attr('GlobalId'),'type':el.is_a(),
+        'name':attr('Name'),'description':attr('Description'),'tag':attr('Tag'),
+        'attributes':attributes,'psets':psets,'quantities':quantities
     }
 
 
