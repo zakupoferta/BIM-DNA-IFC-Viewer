@@ -79,11 +79,13 @@ def load_ifc(path, progress=None):
         settings, model, max(1, min(8, os.cpu_count() or 1))
     )
 
-    # initialize() can itself take time for large IFCs, so report this phase.
     if progress:
         progress(phase="geometry_init", processed=0, total=total,
                  message=f"Inicjalizuję silnik geometrii IFC (0/{total})...")
 
+    # One IFC product may yield more than one geometry fragment. Collect all
+    # fragments by the real product STEP id, then emit ONE viewer object/range.
+    buckets={}
     if iterator.initialize():
         processed=0
         while True:
@@ -93,34 +95,36 @@ def load_ifc(path, progress=None):
                 geom=shape.geometry
                 vs=list(geom.verts)
                 fs=list(geom.faces)
-                if vs and fs:
-                    verts.extend(vs)
-                    faces.extend([x+offset for x in fs])
-                    eid=int(shape.id)
-                    try: el=model.by_id(eid)
-                    except Exception: el=None
-                    info=element_info(el) if el else {
-                        'id':eid,'guid':'','type':'IfcProduct',
-                        'name':'','description':'','tag':'','psets':{}
-                    }
-                    info['vertexStart']=offset
-                    info['vertexCount']=len(vs)//3
-                    info['indexStart']=len(faces)-len(fs)
-                    info['indexCount']=len(fs)
-                    objects.append(info)
-                    offset += len(vs)//3
+                eid=int(shape.id)
+                try: el=model.by_id(eid)
+                except Exception: el=None
+                if vs and fs and el is not None and el.is_a('IfcProduct'):
+                    bucket=buckets.setdefault(eid, {'el':el,'verts':[],'faces':[]})
+                    local_offset=len(bucket['verts'])//3
+                    bucket['verts'].extend(vs)
+                    bucket['faces'].extend([int(x)+local_offset for x in fs])
             except Exception as exc:
-                # One bad element must not stop the whole model.
                 print(f"Geometry warning for iterator item {processed}: {exc}")
             if progress:
-                progress(
-                    phase="geometry",
-                    processed=processed,
-                    total=total,
-                    message=f"Przetwarzanie geometrii: {processed}/{total}"
-                )
+                progress(phase="geometry", processed=processed, total=total,
+                         message=f"Przetwarzanie geometrii: {processed}/{total}")
             if not iterator.next():
                 break
+
+    # Flatten grouped geometry. Every object now has one contiguous draw range,
+    # so selection/highlight/isolation operates on the whole IFC product.
+    for eid,bucket in buckets.items():
+        vs=bucket['verts']; fs=bucket['faces']; el=bucket['el']
+        if not vs or not fs: continue
+        info=element_info(el)
+        info['vertexStart']=offset
+        info['vertexCount']=len(vs)//3
+        info['indexStart']=len(faces)
+        info['indexCount']=len(fs)
+        verts.extend(vs)
+        faces.extend([int(x)+offset for x in fs])
+        objects.append(info)
+        offset += len(vs)//3
 
     if progress:
         progress(phase="metrics", processed=total, total=total,
