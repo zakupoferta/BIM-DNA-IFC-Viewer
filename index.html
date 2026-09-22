@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-store"><title>BIM DNA IFC Viewer 5.3.7</title>
+<meta http-equiv="Cache-Control" content="no-store"><title>BIM DNA IFC Viewer 5.3.8</title>
 <style>
 *{box-sizing:border-box}html,body{height:100%;margin:0;background:#eaf0f6;color:#182536;font-family:Segoe UI,Arial,sans-serif;overflow:hidden}
 body{display:grid;grid-template-rows:48px 1fr}header{display:flex;align-items:center;gap:8px;padding:0 12px;background:rgba(248,251,254,.94);border-bottom:1px solid #cbd5e1;box-shadow:0 2px 12px rgba(31,50,70,.08);min-width:0}
@@ -14,13 +14,13 @@ aside{background:rgba(247,250,253,.96);border-right:1px solid #cbd5e1;overflow:a
 #progressPanel{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:min(520px,70%);z-index:5;display:none;padding:9px 12px;border:1px solid #c4d1de;border-radius:9px;background:rgba(255,255,255,.94);box-shadow:0 8px 30px #0008}.progressTrack{height:9px;background:#dbe5ee;border-radius:8px;overflow:hidden}.progressBar{height:100%;width:0;background:#3b8edb;transition:width .2s ease}.progressText{margin-top:6px;font-size:11px;color:#60758a;text-align:center}
 </style></head>
 <body>
-<header><div class="logo">BIM DNA <i>IFC Viewer 5.3.7</i></div><label for="file">Otwórz IFC</label><input id="file" type="file" accept=".ifc"><button id="fit">Dopasuj</button><span class="toolbarLabel">Rzut:</span><button id="persp" class="modeBtn active">Perspektywa</button><button id="ortho" class="modeBtn">Aksonometria</button><span id="orthoViews" class="viewBtns" style="display:none"><button id="iso">Izometria</button><button id="top">Góra</button><button id="front">Przód</button><button id="back">Tył</button><button id="left">Lewo</button><button id="right">Prawo</button><button id="bottom">Dół</button></span><button id="reset">Reset</button><div id="status">Gotowy — IfcOpenShell</div></header>
+<header><div class="logo">BIM DNA <i>IFC Viewer 5.3.8</i></div><label for="file">Otwórz IFC</label><input id="file" type="file" accept=".ifc"><button id="fit">Dopasuj</button><span class="toolbarLabel">Rzut:</span><button id="persp" class="modeBtn active">Perspektywa</button><button id="ortho" class="modeBtn">Aksonometria</button><span id="orthoViews" class="viewBtns" style="display:none"><button id="iso">Izometria</button><button id="top">Góra</button><button id="front">Przód</button><button id="back">Tył</button><button id="left">Lewo</button><button id="right">Prawo</button><button id="bottom">Dół</button></span><button id="reset">Reset</button><div id="status">Gotowy — IfcOpenShell</div></header>
 <main>
 <aside>
 <div id="drop" class="drop"><b>Przeciągnij plik IFC tutaj</b><div class="small">IfcOpenShell • IFC2X3 / IFC4</div></div>
 <h3>Diagnostyka modelu</h3><div id="diag" class="small">Brak modelu</div>
 <h3>Widok</h3><div class="toolbar"><button id="showAll">Pokaż wszystko</button><button id="hideSelected">Ukryj zaznaczony</button><button id="isolateSelected">Izoluj zaznaczony</button></div>
-<h3>Diagnostyka BIM DNA</h3><div class="toolbar"><button id="semanticAudit">Sprawdź narzędzie natywne → klasę IFC</button></div><div id="semanticAuditResult" class="small">Wyszukuje elementy, których nazwa/oznaczenie narzędzia natywnego sugeruje inną klasę IFC. Wyniki są wskazaniem do weryfikacji, nie automatycznym błędem.</div><h3>Klasy IFC</h3><input id="search" type="text" placeholder="Szukaj klasy lub fragmentu nazwy…"><div id="types"></div><div id="classTools" class="hint" style="display:none"><b id="classTitle"></b><div id="classCount" class="small" style="margin:4px 0 7px"></div><div class="toolbar"><button id="selectWholeClass">Zaznacz wszystkie</button><button id="clearClassSelection">Odznacz</button><button id="isolateWholeClass">Izoluj klasę</button><button id="hideWholeClass">Ukryj klasę</button></div><div style="margin-top:7px"><span class="small">Zmień klasę zaznaczonych elementów na:</span><select id="reassignClass"></select><button id="applyClass" style="width:100%;margin-top:5px">Zmień klasę IFC</button></div></div>
+<h3>Diagnostyka BIM DNA</h3><div class="toolbar"><button id="semanticAudit">Sprawdź narzędzie natywne → klasę IFC</button></div><div id="semanticAuditResult" class="small">Wyszukuje elementy, których nazwa/oznaczenie narzędzia natywnego sugeruje inną klasę IFC. Wyniki są wskazaniem do weryfikacji, nie automatycznym błędem.</div><div style="margin-top:9px;padding-top:8px;border-top:1px solid #d9e2ea"><b>Kontrola jakości IFC</b><div id="dnaQuality" class="small" style="margin-top:6px">Otwórz IFC, aby uruchomić diagnostykę.</div></div><h3>Klasy IFC</h3><input id="search" type="text" placeholder="Szukaj klasy lub fragmentu nazwy…"><div id="types"></div><div id="classTools" class="hint" style="display:none"><b id="classTitle"></b><div id="classCount" class="small" style="margin:4px 0 7px"></div><div class="toolbar"><button id="selectWholeClass">Zaznacz wszystkie</button><button id="clearClassSelection">Odznacz</button><button id="isolateWholeClass">Izoluj klasę</button><button id="hideWholeClass">Ukryj klasę</button></div><div style="margin-top:7px"><span class="small">Zmień klasę zaznaczonych elementów na:</span><select id="reassignClass"></select><button id="applyClass" style="width:100%;margin-top:5px">Zmień klasę IFC</button></div></div>
 </aside>
 <section id="viewport">
 <canvas id="c"></canvas><div id="progressPanel"><div class="progressTrack"><div id="progressBar" class="progressBar"></div></div><div id="progressText" class="progressText">Przygotowuję geometrię IFC…</div></div>
@@ -39,7 +39,7 @@ aside{background:rgba(247,250,253,.96);border-right:1px solid #cbd5e1;overflow:a
 <button id="saveIfc" class="saveBtn">Zapisz zmieniony IFC</button>
 <div id="editStatus" class="small">Zmiany są zapisywane w roboczej kopii modelu.</div>
 </div>
-<div class="sectionline"></div><h3>BIM DNA — kontrola jakości</h3><div id="dnaQuality" class="small">Otwórz IFC, aby uruchomić diagnostykę.</div><h3>Geometria</h3><div id="geom" class="small">—</div><div class="hint small">Lewy przycisk — obrót / wybór elementu<br>Kółko — zoom<br>Shift + lewy / środkowy — przesunięcie<br>Dwuklik — dopasuj model</div></aside>
+<h3>Geometria</h3><div id="geom" class="small">—</div><div class="hint small">Lewy przycisk — obrót / wybór elementu<br>Kółko — zoom<br>Shift + lewy / środkowy — przesunięcie<br>Dwuklik — dopasuj model</div></aside>
 </main>
 <script>
 const $=id=>document.getElementById(id); const canvas=$('c'), vp=$('viewport');
