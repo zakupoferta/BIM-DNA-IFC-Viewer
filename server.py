@@ -83,6 +83,163 @@ def element_info(el):
 
 
 
+def _property_state(el):
+    """Return {Pset.Property: has_non_empty_value} for instance Psets."""
+    out={}
+    try:
+        for rel in getattr(el, 'IsDefinedBy', []) or []:
+            pd=getattr(rel, 'RelatingPropertyDefinition', None)
+            if not pd or not pd.is_a('IfcPropertySet'):
+                continue
+            pset_name=str(getattr(pd, 'Name', '') or '')
+            for prop in getattr(pd, 'HasProperties', []) or []:
+                prop_name=str(getattr(prop, 'Name', '') or '')
+                if not prop_name:
+                    continue
+                key=(pset_name + '.' + prop_name) if pset_name else prop_name
+                filled=False
+                try:
+                    if prop.is_a('IfcPropertySingleValue'):
+                        val=getattr(prop, 'NominalValue', None)
+                        if val is not None:
+                            val=getattr(val, 'wrappedValue', val)
+                            filled=(val is not None and str(val).strip() != '')
+                    elif prop.is_a('IfcPropertyEnumeratedValue'):
+                        vals=list(getattr(prop, 'EnumerationValues', []) or [])
+                        filled=any(str(getattr(v, 'wrappedValue', v)).strip() != '' for v in vals)
+                    elif prop.is_a('IfcPropertyListValue'):
+                        vals=list(getattr(prop, 'ListValues', []) or [])
+                        filled=any(str(getattr(v, 'wrappedValue', v)).strip() != '' for v in vals)
+                    elif prop.is_a('IfcPropertyBoundedValue'):
+                        vals=[getattr(prop, n, None) for n in ('UpperBoundValue','LowerBoundValue','SetPointValue')]
+                        filled=any(v is not None and str(getattr(v, 'wrappedValue', v)).strip() != '' for v in vals)
+                    elif prop.is_a('IfcPropertyReferenceValue'):
+                        filled=getattr(prop, 'PropertyReference', None) is not None
+                except Exception:
+                    filled=False
+                out[key]=bool(out.get(key, False) or filled)
+    except Exception:
+        pass
+    return out
+
+
+def build_dna_information(products):
+    """Descriptive information profile; no arbitrary quality score."""
+    by_class={}
+    defined_total=0
+    nonempty_total=0
+    products_with_properties=0
+
+    for p in products:
+        try:
+            cls=p.is_a()
+        except Exception:
+            cls='IfcProduct'
+        state=_property_state(p)
+        if state:
+            products_with_properties += 1
+        defined_total += len(state)
+        nonempty_total += sum(1 for v in state.values() if v)
+        by_class.setdefault(cls, []).append(state)
+
+    gap_groups=0
+    gap_occurrences=0
+    always_empty_groups=0
+    examples=[]
+
+    for cls, rows in by_class.items():
+        n=len(rows)
+        if n < 2:
+            continue
+        keys=set()
+        for row in rows:
+            keys.update(row.keys())
+        for key in keys:
+            present=sum(1 for row in rows if key in row)
+            filled=sum(1 for row in rows if row.get(key, False))
+            # If at least one peer has a value and another peer does not,
+            # flag the difference as a candidate for verification, not an error.
+            if filled > 0 and filled < n:
+                gap_groups += 1
+                gap_occurrences += (n - filled)
+                if len(examples) < 60:
+                    examples.append({
+                        'ifcClass':cls,
+                        'property':key,
+                        'filled':filled,
+                        'total':n,
+                        'missingOrEmpty':n-filled
+                    })
+            if present > 0 and filled == 0:
+                always_empty_groups += 1
+
+    total=max(1, len(products))
+    filled_pct=(100.0 * nonempty_total / defined_total) if defined_total else 0.0
+    return {
+        'productsAnalyzed':len(products),
+        'productsWithProperties':products_with_properties,
+        'definedValues':defined_total,
+        'nonEmptyValues':nonempty_total,
+        'emptyValues':max(0, defined_total-nonempty_total),
+        'avgDefinedPerProduct':round(defined_total/total, 2),
+        'avgNonEmptyPerProduct':round(nonempty_total/total, 2),
+        'filledPct':round(filled_pct, 1),
+        'classGapGroups':gap_groups,
+        'classGapOccurrences':gap_occurrences,
+        'alwaysEmptyGroups':always_empty_groups,
+        'classGapExamples':examples
+    }
+
+
+def build_dna_geometry(products, objects):
+    """Describe how semantic IFC products are associated with Viewer geometry."""
+    owner_ids=set()
+    source_ids=set()
+    direct_owners=0
+    via_parts_owners=0
+
+    for o in objects:
+        try:
+            oid=int(o.get('id', 0) or 0)
+        except Exception:
+            oid=0
+        src=set()
+        for value in o.get('sourceIds', []) or []:
+            try:
+                src.add(int(value))
+            except Exception:
+                pass
+        if oid:
+            owner_ids.add(oid)
+            if oid in src:
+                direct_owners += 1
+            elif src:
+                via_parts_owners += 1
+        source_ids.update(src)
+
+    product_ids=set()
+    for p in products:
+        try:
+            product_ids.add(int(p.id()))
+        except Exception:
+            pass
+
+    contributors=(source_ids - owner_ids) & product_ids
+    associated=(owner_ids | source_ids) & product_ids
+    unassociated=product_ids - associated
+
+    return {
+        'productsAnalyzed':len(product_ids),
+        'logicalObjects':len(owner_ids),
+        'directObjects':direct_owners,
+        'viaPartsObjects':via_parts_owners,
+        'componentContributors':len(contributors),
+        'associatedProducts':len(associated),
+        'unassociatedProducts':len(unassociated),
+        'associationPct':round(100.0*len(associated)/max(1,len(product_ids)), 1)
+    }
+
+
 def logical_parent(el):
     """Find the nearest meaningful parent product for geometry ownership."""
     cur=el
@@ -259,6 +416,9 @@ def load_ifc(path, progress=None):
             'hasGeometry':pid in geometry_ids
         })
 
+    dna_information=build_dna_information(products)
+    dna_geometry=build_dna_geometry(products, objects)
+
     return {
       'schema':getattr(model,'schema','UNKNOWN'),
       'entityCount':entity_count,
@@ -271,6 +431,8 @@ def load_ifc(path, progress=None):
       'productClasses':product_classes,
       'productClassCounts':product_class_counts,
       'productCatalog':product_catalog,
+      'dnaInformation':dna_information,
+      'dnaGeometry':dna_geometry,
       'objects':objects,
       'positions':verts,
       'indices':faces
