@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-store"><title>BIM DNA IFC Viewer 6.0</title>
+<meta http-equiv="Cache-Control" content="no-store"><title>BIM DNA IFC Viewer 6.1</title>
 <style>
 *{box-sizing:border-box}html,body{height:100%;margin:0;background:#eaf0f6;color:#182536;font-family:Segoe UI,Arial,sans-serif;overflow:hidden}
 body{display:grid;grid-template-rows:48px 1fr}header{display:flex;align-items:center;gap:8px;padding:0 12px;background:rgba(248,251,254,.94);border-bottom:1px solid #cbd5e1;box-shadow:0 2px 12px rgba(31,50,70,.08);min-width:0}
@@ -14,7 +14,7 @@ aside{background:rgba(247,250,253,.96);border-right:1px solid #cbd5e1;overflow:a
 #progressPanel{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:min(520px,70%);z-index:5;display:none;padding:9px 12px;border:1px solid #c4d1de;border-radius:9px;background:rgba(255,255,255,.94);box-shadow:0 8px 30px #0008}.progressTrack{height:9px;background:#dbe5ee;border-radius:8px;overflow:hidden}.progressBar{height:100%;width:0;background:#3b8edb;transition:width .2s ease}.progressText{margin-top:6px;font-size:11px;color:#60758a;text-align:center}
 .modalBack{position:fixed;inset:0;background:#0005;z-index:50;display:none;align-items:center;justify-content:center}.modalCard{width:min(760px,90vw);max-height:84vh;overflow:auto;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 20px 60px #0005;padding:16px}.modalHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.scoreBar{height:18px;background:#e6edf4;border-radius:9px;overflow:hidden}.scoreFill{height:100%;background:#5b8fc7}.auditList{max-height:260px;overflow:auto;border:1px solid #d7e0e8;border-radius:7px;padding:6px;margin-top:6px}.auditRow{display:block;padding:5px;border-bottom:1px solid #edf1f5}.auditRow:last-child{border-bottom:0}.dnaGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}.dnaCard{border:1px solid #d7e0e8;border-radius:10px;padding:12px;background:#f8fbfd}.dnaCard h4{margin:0 0 5px;font-size:13px;color:#20364d}.dnaValue{font-size:23px;font-weight:700;color:#245f94;margin:3px 0}.dnaNote{font-size:11px;color:#687d92;line-height:1.35;min-height:30px}.dnaGaugeWrap{position:relative;margin:19px 2px 8px}.dnaGauge{height:12px;border-radius:7px;background:linear-gradient(90deg,#c94e4e 0%,#e2b94b 50%,#5ca96b 100%);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}.dnaMarker{position:absolute;top:-6px;width:3px;height:24px;background:#1e3145;border-radius:2px;transform:translateX(-1px)}.dnaMarkerLabel{position:absolute;top:-22px;transform:translateX(-50%);font-size:10px;font-weight:700;color:#20364d;white-space:nowrap}.dnaScale{display:flex;justify-content:space-between;font-size:9px;color:#7a8da0;margin-top:3px}.dnaDetails{margin-top:9px;border-top:1px solid #e1e8ee;padding-top:7px}.dnaDetails summary{cursor:pointer;font-size:11px;font-weight:600;color:#38556f}.dnaStats{margin-top:7px;font-size:11px;line-height:1.55;color:#435a70}@media(max-width:700px){.dnaGrid{grid-template-columns:1fr}}</style></head>
 <body>
-<header><div class="logo">BIM DNA <i>IFC Viewer 6.0</i></div><label for="file">Otwórz IFC</label><input id="file" type="file" accept=".ifc"><button id="fit">Dopasuj</button><span class="toolbarLabel">Rzut:</span><button id="persp" class="modeBtn active">Perspektywa</button><button id="ortho" class="modeBtn">Aksonometria</button><span id="orthoViews" class="viewBtns" style="display:none"><button id="iso">Izometria</button><button id="top">Góra</button><button id="front">Przód</button><button id="back">Tył</button><button id="left">Lewo</button><button id="right">Prawo</button><button id="bottom">Dół</button></span><button id="reset">Reset</button><div id="status">Gotowy — IfcOpenShell</div></header>
+<header><div class="logo">BIM DNA <i>IFC Viewer 6.1</i></div><label for="file">Otwórz IFC</label><input id="file" type="file" accept=".ifc"><button id="fit">Dopasuj</button><span class="toolbarLabel">Rzut:</span><button id="persp" class="modeBtn active">Perspektywa</button><button id="ortho" class="modeBtn">Aksonometria</button><span id="orthoViews" class="viewBtns" style="display:none"><button id="iso">Izometria</button><button id="top">Góra</button><button id="front">Przód</button><button id="back">Tył</button><button id="left">Lewo</button><button id="right">Prawo</button><button id="bottom">Dół</button></span><button id="reset">Reset</button><div id="status">Gotowy — IfcOpenShell</div></header>
 <main>
 <aside>
 <div id="drop" class="drop"><b>Przeciągnij plik IFC tutaj</b><div class="small">IfcOpenShell • IFC2X3 / IFC4</div></div>
@@ -24,7 +24,7 @@ aside{background:rgba(247,250,253,.96);border-right:1px solid #cbd5e1;overflow:a
 </aside>
 <section id="viewport">
 <canvas id="c"></canvas><div id="progressPanel"><div class="progressTrack"><div id="progressBar" class="progressBar"></div></div><div id="progressText" class="progressText">Przygotowuję geometrię IFC…</div></div>
-<div id="empty" class="empty"><div><strong>BIM DNA — IFC Viewer 6.0</strong>Wczytaj model IFC. Geometrię przygotuje IfcOpenShell.</div></div>
+<div id="empty" class="empty"><div><strong>BIM DNA — IFC Viewer 6.1</strong>Wczytaj model IFC. Geometrię przygotuje IfcOpenShell.</div></div>
 <div class="dna"><b>BIM DNA</b><div class="small">Profil informacyjny modelu</div><div>Uzupełnienie właściwości <span id="density">—</span></div><div class="bar"><div id="fill" class="fill"></div></div><div class="small">wartości w zdefiniowanych Psetach</div></div>
 </section>
 <aside class="right"><h3>Element</h3><div id="props" class="small">Kliknij element. Zaznaczony element możesz ukryć lub izolować.</div>
@@ -39,19 +39,19 @@ aside{background:rgba(247,250,253,.96);border-right:1px solid #cbd5e1;overflow:a
 <button id="saveIfc" class="saveBtn">Zapisz zmieniony IFC</button>
 <div id="editStatus" class="small">Zmiany są zapisywane w roboczej kopii modelu.</div>
 </div>
-<h3>Geometria</h3><div id="geom" class="small">—</div><div class="hint small">Lewy przycisk — obrót / wybór elementu<br>Kółko — zoom<br>Shift + lewy / środkowy — przesunięcie<br>Dwuklik — dopasuj model</div></aside>
+<h3>Geometria</h3><div id="geom" class="small">—</div><div class="hint small">Lewy przycisk — wybór elementu<br>Środkowy przycisk — przesunięcie (Pan)<br>Shift + środkowy — obrót (Orbit)<br>Kółko — zoom do kursora<br>Dwuklik środkowym — dopasuj model</div></aside>
 </main>
 <script>
 const $=id=>document.getElementById(id); const canvas=$('c'), vp=$('viewport');
 window.addEventListener('error',e=>{const el=document.getElementById('status');if(el)el.textContent='Błąd JavaScript: '+e.message;console.error(e.error||e.message)});
 const gl=canvas.getContext('webgl2',{antialias:true,alpha:true})||canvas.getContext('webgl',{antialias:true,alpha:true});
-let model=null, currentJob='', currentFileName='', selected=-1, hidden=new Set(), isolated=-1, yaw=.72,pitch=.48,dist=2.55,target=[0,0,0], dragging=false,pan=false,moved=false,lastX=0,lastY=0,downX=0,downY=0,projection='perspective';
+let model=null, currentJob='', currentFileName='', selected=-1, hidden=new Set(), isolated=-1, yaw=.72,pitch=.48,dist=2.55,target=[0,0,0], dragging=false,pan=false,moved=false,lastX=0,lastY=0,downX=0,downY=0,projection='perspective',navMode='',lastMiddleDown=0;
 let meshBuffer=null, meshVertexCount=0, ranges=[]; let classSelection=new Set(), semanticClassSelection=new Set(), selectedClass='';
-const vs=`attribute vec3 aPosition; attribute vec3 aNormal; attribute vec3 aColor; uniform mat4 uMVP; uniform mat4 uModel; varying vec3 vNormal; varying vec3 vColor; void main(){gl_Position=uMVP*vec4(aPosition,1.0);vNormal=mat3(uModel)*aNormal;vColor=aColor;}`;
-const fs=`precision mediump float; varying vec3 vNormal; varying vec3 vColor; uniform float uSelected; void main(){vec3 N=normalize(vNormal);vec3 L=normalize(vec3(-.35,.72,.55));float d=max(dot(N,L),0.0);float light=.58+.36*d;vec3 c=clamp(vColor*light,0.0,1.0);if(uSelected>.5){c=mix(c,vec3(1.0,.58,.08),.82);}gl_FragColor=vec4(c,1.0);}`;
+const vs=`attribute vec3 aPosition; attribute vec3 aNormal; attribute vec3 aColor; attribute float aAlpha; uniform mat4 uMVP; uniform mat4 uModel; varying vec3 vNormal; varying vec3 vColor; varying float vAlpha; void main(){gl_Position=uMVP*vec4(aPosition,1.0);vNormal=mat3(uModel)*aNormal;vColor=aColor;vAlpha=aAlpha;}`;
+const fs=`precision mediump float; varying vec3 vNormal; varying vec3 vColor; varying float vAlpha; uniform float uSelected; uniform float uPass; void main(){bool transparent=vAlpha<.995;if(uPass<.5&&transparent)discard;if(uPass>.5&&!transparent)discard;vec3 N=normalize(vNormal);vec3 L=normalize(vec3(-.35,.72,.55));float d=max(dot(N,L),0.0);float light=.58+.36*d;vec3 c=clamp(vColor*light,0.0,1.0);float a=vAlpha;if(uSelected>.5){c=mix(c,vec3(1.0,.58,.08),.82);a=max(a,.72);}gl_FragColor=vec4(c,a);}`;
 function shader(t,s){let x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(x));return x}
 let prog=null, loc={};
-if(gl){prog=gl.createProgram();gl.attachShader(prog,shader(gl.VERTEX_SHADER,vs));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){$('status').textContent='Błąd shaderów WebGL';}loc={p:gl.getAttribLocation(prog,'aPosition'),n:gl.getAttribLocation(prog,'aNormal'),c:gl.getAttribLocation(prog,'aColor'),mvp:gl.getUniformLocation(prog,'uMVP'),model:gl.getUniformLocation(prog,'uModel'),sel:gl.getUniformLocation(prog,'uSelected')};}
+if(gl){prog=gl.createProgram();gl.attachShader(prog,shader(gl.VERTEX_SHADER,vs));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){$('status').textContent='Błąd shaderów WebGL';}loc={p:gl.getAttribLocation(prog,'aPosition'),n:gl.getAttribLocation(prog,'aNormal'),c:gl.getAttribLocation(prog,'aColor'),a:gl.getAttribLocation(prog,'aAlpha'),mvp:gl.getUniformLocation(prog,'uMVP'),model:gl.getUniformLocation(prog,'uModel'),sel:gl.getUniformLocation(prog,'uSelected'),pass:gl.getUniformLocation(prog,'uPass')};}
 function ortho(l,r,b,t,n,f){const rl=1/(r-l),tb=1/(t-b),fn=1/(f-n);return new Float32Array([2*rl,0,0,0,0,2*tb,0,0,0,0,-2*fn,0,-(r+l)*rl,-(t+b)*tb,-(f+n)*fn,1])}
 function perspective(fov,asp,n,f){const q=1/Math.tan(fov/2),nf=1/(n-f);return new Float32Array([q/asp,0,0,0,0,q,0,0,0,0,(f+n)*nf,-1,0,0,2*f*n*nf,0])}
 function look(eye,c,up=[0,1,0]){const z=norm([eye[0]-c[0],eye[1]-c[1],eye[2]-c[2]]),x=norm(cross(up,z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1])}
@@ -103,7 +103,7 @@ function normalizeGeometry(){
  for(let i=0;i<a.length;i+=3){a[i]=(a[i]-cx)*scale;a[i+1]=(a[i+1]-cy)*scale;a[i+2]=(a[i+2]-cz)*scale}
 }
 
-function renderDiag(name){const n=v=>Number(v||0).toLocaleString();$('diag').innerHTML='Plik: <b>'+escapeHtml(name)+'</b><br>Schemat IFC: <b>'+escapeHtml(model.schema)+'</b><br>Encje IFC: <b>'+n(model.entityCount)+'</b><br>Produkty IFC w pliku: <b>'+n(model.productCount)+'</b><br>Obiekty logiczne 3D: <b>'+n((model.objects||[]).length)+'</b><br>Wierzchołki: <b>'+n(model.vertexCount)+'</b><br>Trójkąty: <b>'+n(model.triangleCount)+'</b><br>Zakres XYZ: <b>znormalizowany</b>';const dnaFill=Number((model.dnaInformation||{}).filledPct||0);$('density').textContent=dnaFill.toFixed(1)+'%';$('fill').style.width=Math.min(100,Math.max(0,dnaFill))+'%';$('geom').innerHTML='<span class="ok">IfcOpenShell wygenerował mesh 3D.</span><br>Elementy: <b>'+n(model.geometryProductCount)+'</b><br>Trójkąty: <b>'+n(model.triangleCount)+'</b><br>Tryb renderowania: <b>WebGL + oświetlenie • powierzchnie dwustronne</b><br><span style="opacity:.75">Powierzchnie IFC są renderowane z obu stron, aby nie ukrywać terenu/meshy o odwróconej orientacji ścian.</span>'}
+function renderDiag(name){const n=v=>Number(v||0).toLocaleString();$('diag').innerHTML='Plik: <b>'+escapeHtml(name)+'</b><br>Schemat IFC: <b>'+escapeHtml(model.schema)+'</b><br>Encje IFC: <b>'+n(model.entityCount)+'</b><br>Produkty IFC w pliku: <b>'+n(model.productCount)+'</b><br>Obiekty logiczne 3D: <b>'+n((model.objects||[]).length)+'</b><br>Wierzchołki: <b>'+n(model.vertexCount)+'</b><br>Trójkąty: <b>'+n(model.triangleCount)+'</b><br>Zakres XYZ: <b>znormalizowany</b>';const dnaFill=Number((model.dnaInformation||{}).filledPct||0);$('density').textContent=dnaFill.toFixed(1)+'%';$('fill').style.width=Math.min(100,Math.max(0,dnaFill))+'%';$('geom').innerHTML='<span class="ok">IfcOpenShell wygenerował mesh 3D.</span><br>Elementy: <b>'+n(model.geometryProductCount)+'</b><br>Trójkąty: <b>'+n(model.triangleCount)+'</b><br>Tryb renderowania: <b>WebGL + oświetlenie • IFC transparency</b><br><span style="opacity:.75">IfcOpeningElement są ukrywane w podglądzie, a przezroczystość powierzchni jest odczytywana ze stylów IFC (np. szkło).</span>'}
 function displayIfcClass(type){
  const t=type||'IfcProduct';
  return t==='IfcWallStandardCase'?'IfcWall':t
@@ -164,9 +164,62 @@ function openDnaModal(){
  $('dnaModalBody').innerHTML='<p><b>BIM DNA — profil diagnostyczny modelu IFC</b></p><div class="dnaGrid">'+infoCard+semanticCard+proxyCard+geometryCard+'</div><p class="small" style="margin-top:12px">Paski pokazują położenie wskaźnika od słabszego wyniku (czerwony) do lepszego (zielony). Szczegóły są rozwijane osobno dla każdego parametru.</p>';
  $('dnaModal').style.display='flex'
 }
-function buildMeshBuffer(){if(!gl||!model||!model.positions.length||!model.indices.length)return;const count=model.indices.length;const tri=new Float32Array(count*9);ranges=[];let vertexCursor=0;for(let oi=0;oi<model.objects.length;oi++){const o=model.objects[oi],start=Number(o.indexStart||0),cnt=Number(o.indexCount||0);if(!cnt)continue;const color=hashColor(o.guid||String(o.id)||o.type||'IfcProduct');const outStart=vertexCursor;for(let j=start;j<start+cnt;j+=3){const ia=model.indices[j]*3,ib=model.indices[j+1]*3,ic=model.indices[j+2]*3;let A=[model.positions[ia],model.positions[ia+1],model.positions[ia+2]],B=[model.positions[ib],model.positions[ib+1],model.positions[ib+2]],C=[model.positions[ic],model.positions[ic+1],model.positions[ic+2]];const ab=[B[0]-A[0],B[1]-A[1],B[2]-A[2]],ac=[C[0]-A[0],C[1]-A[1],C[2]-A[2]],nn=norm(cross(ab,ac));for(const P of [A,B,C]){const k=vertexCursor*9;tri[k]=P[0];tri[k+1]=P[1];tri[k+2]=P[2];tri[k+3]=nn[0];tri[k+4]=nn[1];tri[k+5]=nn[2];tri[k+6]=color[0];tri[k+7]=color[1];tri[k+8]=color[2];vertexCursor++}}ranges.push({objectIndex:oi,start:outStart,count:vertexCursor-outStart})}
-if(meshBuffer)gl.deleteBuffer(meshBuffer);meshBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,meshBuffer);gl.bufferData(gl.ARRAY_BUFFER,tri,gl.STATIC_DRAW);meshVertexCount=vertexCursor}
-function draw(){resize();if(!gl||!prog)return;gl.viewport(0,0,canvas.width,canvas.height);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);if(!model||!meshBuffer)return;const cp=Math.cos(pitch),eye=[target[0]+dist*cp*Math.sin(yaw),target[1]+dist*Math.sin(pitch),target[2]+dist*cp*Math.cos(yaw)];const aspect=canvas.width/Math.max(1,canvas.height), radius=model?Math.max(.25,Math.hypot(...getBounds().span)/2):1; const P=projection==='orthographic'?ortho(-radius*1.65*aspect,radius*1.65*aspect,-radius*1.65,radius*1.65,-20,20):perspective(.72,aspect,.02,100),V=look(eye,target),M=new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),MVP=mul(P,V);gl.useProgram(prog);gl.uniformMatrix4fv(loc.mvp,false,MVP);gl.uniformMatrix4fv(loc.model,false,M);gl.bindBuffer(gl.ARRAY_BUFFER,meshBuffer);const stride=36;gl.enableVertexAttribArray(loc.p);gl.enableVertexAttribArray(loc.n);gl.enableVertexAttribArray(loc.c);gl.vertexAttribPointer(loc.p,3,gl.FLOAT,false,stride,0);gl.vertexAttribPointer(loc.n,3,gl.FLOAT,false,stride,12);gl.vertexAttribPointer(loc.c,3,gl.FLOAT,false,stride,24);for(const r of ranges){const oi=r.objectIndex;if(hidden.has(oi))continue;if(isolated>=0&&oi!==isolated)continue;gl.uniform1f(loc.sel,(oi===selected||classSelection.has(oi))?1:0);gl.drawArrays(gl.TRIANGLES,r.start,r.count)}}
+function buildMeshBuffer(){
+ if(!gl||!model||!model.positions.length||!model.indices.length)return;
+ const count=model.indices.length;
+ const tri=new Float32Array(count*10);
+ ranges=[];
+ let vertexCursor=0;
+ for(let oi=0;oi<model.objects.length;oi++){
+  const o=model.objects[oi],start=Number(o.indexStart||0),cnt=Number(o.indexCount||0);
+  if(!cnt)continue;
+  const color=hashColor(o.guid||String(o.id)||o.type||'IfcProduct');
+  const alphas=Array.isArray(o.faceAlphas)?o.faceAlphas:[];
+  const outStart=vertexCursor;
+  for(let j=start;j<start+cnt;j+=3){
+   const ia=model.indices[j]*3,ib=model.indices[j+1]*3,ic=model.indices[j+2]*3;
+   let A=[model.positions[ia],model.positions[ia+1],model.positions[ia+2]],B=[model.positions[ib],model.positions[ib+1],model.positions[ib+2]],C=[model.positions[ic],model.positions[ic+1],model.positions[ic+2]];
+   const ab=[B[0]-A[0],B[1]-A[1],B[2]-A[2]],ac=[C[0]-A[0],C[1]-A[1],C[2]-A[2]],nn=norm(cross(ab,ac));
+   const faceIndex=Math.floor((j-start)/3);
+   const alpha=Math.max(.06,Math.min(1,Number(alphas[faceIndex]??1)));
+   for(const P of [A,B,C]){
+    const k=vertexCursor*10;
+    tri[k]=P[0];tri[k+1]=P[1];tri[k+2]=P[2];
+    tri[k+3]=nn[0];tri[k+4]=nn[1];tri[k+5]=nn[2];
+    tri[k+6]=color[0];tri[k+7]=color[1];tri[k+8]=color[2];
+    tri[k+9]=alpha;
+    vertexCursor++;
+   }
+  }
+  ranges.push({objectIndex:oi,start:outStart,count:vertexCursor-outStart})
+ }
+ if(meshBuffer)gl.deleteBuffer(meshBuffer);
+ meshBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,meshBuffer);gl.bufferData(gl.ARRAY_BUFFER,tri,gl.STATIC_DRAW);meshVertexCount=vertexCursor
+}
+function draw(){
+ resize();if(!gl||!prog)return;
+ gl.viewport(0,0,canvas.width,canvas.height);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ if(!model||!meshBuffer)return;
+ const cp=Math.cos(pitch),eye=[target[0]+dist*cp*Math.sin(yaw),target[1]+dist*Math.sin(pitch),target[2]+dist*cp*Math.cos(yaw)];
+ const aspect=canvas.width/Math.max(1,canvas.height),radius=model?Math.max(.25,Math.hypot(...getBounds().span)/2):1;
+ const P=projection==='orthographic'?ortho(-radius*1.65*aspect,radius*1.65*aspect,-radius*1.65,radius*1.65,-20,20):perspective(.72,aspect,.02,100),V=look(eye,target),M=new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]),MVP=mul(P,V);
+ gl.useProgram(prog);gl.uniformMatrix4fv(loc.mvp,false,MVP);gl.uniformMatrix4fv(loc.model,false,M);
+ gl.bindBuffer(gl.ARRAY_BUFFER,meshBuffer);
+ const stride=40;
+ gl.enableVertexAttribArray(loc.p);gl.enableVertexAttribArray(loc.n);gl.enableVertexAttribArray(loc.c);gl.enableVertexAttribArray(loc.a);
+ gl.vertexAttribPointer(loc.p,3,gl.FLOAT,false,stride,0);gl.vertexAttribPointer(loc.n,3,gl.FLOAT,false,stride,12);gl.vertexAttribPointer(loc.c,3,gl.FLOAT,false,stride,24);gl.vertexAttribPointer(loc.a,1,gl.FLOAT,false,stride,36);
+ const drawPass=(pass)=>{
+  gl.uniform1f(loc.pass,pass);
+  for(const r of ranges){
+   const oi=r.objectIndex;if(hidden.has(oi))continue;if(isolated>=0&&oi!==isolated)continue;
+   gl.uniform1f(loc.sel,(oi===selected||classSelection.has(oi))?1:0);
+   gl.drawArrays(gl.TRIANGLES,r.start,r.count)
+  }
+ };
+ gl.disable(gl.BLEND);gl.depthMask(true);drawPass(0);
+ gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);drawPass(1);
+ gl.depthMask(true);gl.disable(gl.BLEND)
+}
 function renderOnce(){draw()};function loop(){draw();requestAnimationFrame(loop)}
 function props(i){if(i<0||!model||!model.objects[i]){$('props').textContent='Kliknij element.';return}const o=model.objects[i],p=o.psets||{},q=o.quantities||{},a=o.attributes||{};let html='<table><tr><td>Klasa</td><td><b>'+escapeHtml(o.type||'—')+'</b></td></tr><tr><td>Express ID</td><td>'+escapeHtml(String(o.id??'—'))+'</td></tr><tr><td>GUID</td><td>'+escapeHtml(o.guid||'—')+'</td></tr><tr><td>Nazwa</td><td>'+escapeHtml(o.name||'—')+'</td></tr><tr><td>Tag</td><td>'+escapeHtml(o.tag||'—')+'</td></tr>'+(Array.isArray(o.sourceIds)&&o.sourceIds.length>1?'<tr><td>Geometria składowa</td><td>'+o.sourceIds.length+' części IFC</td></tr>':'')+'</table>';const attrs=Object.entries(a).filter(([k])=>!['GlobalId','Name','Tag'].includes(k));if(attrs.length){html+='<div class="sectionline"></div><h3>Atrybuty IFC</h3><table>';for(const [k,v] of attrs)html+='<tr><td>'+escapeHtml(k)+'</td><td>'+escapeHtml(String(v))+'</td></tr>';html+='</table>'}const names=Object.keys(p);if(names.length){html+='<div class="sectionline"></div><h3>Property Sets</h3>';for(const set of names){html+='<div style="margin:7px 0"><b>'+escapeHtml(set)+'</b><table>';for(const [k,v] of Object.entries(p[set]||{}))html+='<tr><td>'+escapeHtml(k)+'</td><td>'+escapeHtml(String(v))+'</td></tr>';html+='</table></div>'}}const qnames=Object.keys(q);if(qnames.length){html+='<div class="sectionline"></div><h3>Quantities</h3>';for(const set of qnames){html+='<div style="margin:7px 0"><b>'+escapeHtml(set)+'</b><table>';for(const [k,v] of Object.entries(q[set]||{}))html+='<tr><td>'+escapeHtml(k)+'</td><td>'+escapeHtml(String(v))+'</td></tr>';html+='</table></div>'}}$('props').innerHTML=html;$('editClass').value=o.type||'';const dl=$('psetList');dl.innerHTML=Object.keys(p).map(x=>'<option value="'+escapeAttr(x)+'"></option>').join('')}
 function populateEditorClasses(){
@@ -219,8 +272,8 @@ function pick(clientX,clientY){
    const oi=r.objectIndex;
    if(hidden.has(oi)||(isolated>=0&&oi!==isolated))continue;
    for(let k=0;k<r.count;k+=3){
-     const base=(r.start+k)*9;
-     const A=[meshArray[base],meshArray[base+1],meshArray[base+2]],B=[meshArray[base+9],meshArray[base+10],meshArray[base+11]],C=[meshArray[base+18],meshArray[base+19],meshArray[base+20]];
+     const base=(r.start+k)*10;
+     const A=[meshArray[base],meshArray[base+1],meshArray[base+2]],B=[meshArray[base+10],meshArray[base+11],meshArray[base+12]],C=[meshArray[base+20],meshArray[base+21],meshArray[base+22]];
      const t=rayTri(cam.eye,dir,A,B,C);
      if(t!==null&&t<bestT){bestT=t;best=oi}
    }
@@ -237,10 +290,49 @@ function rayTri(O,D,A,B,C){
  const t=dot(e2,qv)*invDet;
  return t>=0?t:null;
 }
-canvas.addEventListener('pointerdown',e=>{dragging=true;moved=false;pan=e.shiftKey||e.button===1;lastX=downX=e.clientX;lastY=downY=e.clientY;canvas.classList.add('drag');canvas.setPointerCapture(e.pointerId)});
-canvas.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;if(Math.abs(e.clientX-downX)+Math.abs(e.clientY-downY)>4)moved=true;lastX=e.clientX;lastY=e.clientY;if(pan){const scale=dist*.0017;target[0]-=dx*scale*Math.cos(yaw);target[2]+=dx*scale*Math.sin(yaw);target[1]+=dy*scale}else{yaw+=dx*.008;pitch=Math.max(-1.52,Math.min(1.52,pitch+dy*.008))}renderOnce()});
-canvas.addEventListener('pointerup',e=>{dragging=false;canvas.classList.remove('drag');if(!moved&&e.button===0&&!e.shiftKey)pick(e.clientX,e.clientY)});
-canvas.addEventListener('wheel',e=>{e.preventDefault();if(projection==='orthographic'){dist*=Math.exp(e.deltaY*.001);dist=Math.max(.35,Math.min(12,dist));}else{dist*=Math.exp(e.deltaY*.001);dist=Math.max(.35,Math.min(12,dist));}renderOnce()},{passive:false});canvas.addEventListener('dblclick',fit);
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('pointerdown',e=>{
+ moved=false;lastX=downX=e.clientX;lastY=downY=e.clientY;
+ if(e.button===1){
+  e.preventDefault();
+  const now=Date.now();
+  if(now-lastMiddleDown<360){lastMiddleDown=0;fit();return}
+  lastMiddleDown=now;
+  dragging=true;navMode=e.shiftKey?'orbit':'pan';canvas.classList.add('drag');canvas.setPointerCapture(e.pointerId);return
+ }
+ if(e.button===0){
+  dragging=true;navMode='select';canvas.setPointerCapture(e.pointerId)
+ }
+});
+canvas.addEventListener('pointermove',e=>{
+ if(!dragging)return;
+ const dx=e.clientX-lastX,dy=e.clientY-lastY;
+ if(Math.abs(e.clientX-downX)+Math.abs(e.clientY-downY)>4)moved=true;
+ lastX=e.clientX;lastY=e.clientY;
+ if(navMode==='pan'){
+  const cam=cameraState(),scale=dist*.0017;
+  target[0]-=cam.right[0]*dx*scale;target[1]-=cam.right[1]*dx*scale;target[2]-=cam.right[2]*dx*scale;
+  target[0]+=cam.up[0]*dy*scale;target[1]+=cam.up[1]*dy*scale;target[2]+=cam.up[2]*dy*scale;
+  renderOnce()
+ }else if(navMode==='orbit'){
+  yaw+=dx*.008;pitch=Math.max(-1.52,Math.min(1.52,pitch+dy*.008));renderOnce()
+ }
+});
+canvas.addEventListener('pointerup',e=>{
+ const mode=navMode;dragging=false;navMode='';canvas.classList.remove('drag');
+ if(mode==='select'&&!moved&&e.button===0)pick(e.clientX,e.clientY)
+});
+canvas.addEventListener('wheel',e=>{
+ e.preventDefault();if(!model)return;
+ const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)/Math.max(1,rect.width)*2-1,y=1-(e.clientY-rect.top)/Math.max(1,rect.height)*2;
+ const cam=cameraState(),oldDist=dist,factor=Math.exp(e.deltaY*.001);
+ dist=Math.max(.35,Math.min(12,dist*factor));
+ const move=(oldDist-dist)*.46,aspect=rect.width/Math.max(1,rect.height);
+ target[0]+=cam.right[0]*x*move*aspect+cam.up[0]*y*move;
+ target[1]+=cam.right[1]*x*move*aspect+cam.up[1]*y*move;
+ target[2]+=cam.right[2]*x*move*aspect+cam.up[2]*y*move;
+ renderOnce()
+},{passive:false});
 function indicesOfClass(type){
  const out=[];
  if(!model)return out;
@@ -282,6 +374,6 @@ function showAuditIssues3d(isolate=false){const {wanted,ids}=auditViewerIndices(
 $('semanticAudit').onclick=runSemanticAudit;
 window.addEventListener('DOMContentLoaded',()=>{const close=$('dnaModalClose'),modal=$('dnaModal');if(close)close.onclick=()=>{modal.style.display='none'};if(modal)modal.onclick=e=>{if(e.target===modal)modal.style.display='none'}});$('setProperty').onclick=()=>editProperty('set');$('deleteProperty').onclick=()=>editProperty('delete');$('saveIfc').onclick=saveIfc;$('fit').onclick=fit;$('persp').onclick=()=>setProjection('perspective');$('ortho').onclick=()=>setProjection('orthographic');$('iso').onclick=()=>setView('iso');$('top').onclick=()=>setView('top');$('front').onclick=()=>setView('front');$('back').onclick=()=>setView('back');$('left').onclick=()=>setView('left');$('right').onclick=()=>setView('right');$('bottom').onclick=()=>setView('bottom');$('reset').onclick=()=>{hidden.clear();isolated=-1;selected=-1;classSelection.clear();semanticClassSelection.clear();selectedClass='';$('classTools').style.display='none';fit();props(-1);renderTypes()};$('showAll').onclick=()=>{hidden.clear();isolated=-1;renderOnce()};$('hideSelected').onclick=()=>{if(selected>=0){hidden.add(selected);renderOnce()}};$('isolateSelected').onclick=()=>{if(selected>=0){isolated=selected;hidden.clear();renderOnce()}};$('search').oninput=renderTypes;$('file').onchange=e=>e.target.files[0]&&upload(e.target.files[0]);$('drop').ondragover=e=>{e.preventDefault();$('drop').style.background='#17283a'};$('drop').ondragleave=()=>$('drop').style.background='';$('drop').ondrop=e=>{e.preventDefault();$('drop').style.background='';const f=e.dataTransfer.files[0];if(f)upload(f)};updateProjectionUI();window.addEventListener('resize',renderOnce);
 // Keep a CPU-side copy of the render buffer for picking.
-const oldBuild=buildMeshBuffer;buildMeshBuffer=function(){oldBuild();if(gl&&meshBuffer&&meshVertexCount){gl.bindBuffer(gl.ARRAY_BUFFER,meshBuffer);meshArray=new Float32Array(meshVertexCount*9);gl.getBufferSubData(gl.ARRAY_BUFFER,0,meshArray)}};
+const oldBuild=buildMeshBuffer;buildMeshBuffer=function(){oldBuild();if(gl&&meshBuffer&&meshVertexCount){gl.bindBuffer(gl.ARRAY_BUFFER,meshBuffer);meshArray=new Float32Array(meshVertexCount*10);gl.getBufferSubData(gl.ARRAY_BUFFER,0,meshArray)}};
 if(!gl)$('status').textContent='WebGL niedostępny';fetch('/api/health',{cache:'no-store'}).then(r=>r.json()).then(x=>{$('status').textContent='Serwer OK • IfcOpenShell '+x.ifcopenshell}).catch(e=>{$('status').textContent='BŁĄD SERWERA • '+e.message});loop();
 </script><div id="dnaModal" class="modalBack"><div class="modalCard"><div class="modalHead"><h2 style="margin:0">BIM DNA — profil diagnostyczny IFC</h2><button id="dnaModalClose">Zamknij</button></div><div id="dnaModalBody" style="margin-top:12px"></div></div></div></body></html>
