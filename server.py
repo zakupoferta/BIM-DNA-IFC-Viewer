@@ -203,7 +203,7 @@ def build_dna_information(products):
 
 
 def build_dna_geometry(products, objects):
-    """Describe geometry coverage at the logical-object level."""
+    """Describe geometry coverage for logical, displayable IFC objects."""
     owner_ids=set()
     direct_owners=0
     via_parts_owners=0
@@ -226,13 +226,15 @@ def build_dna_geometry(products, objects):
             elif src:
                 via_parts_owners += 1
 
-    # Build the same logical ownership set for all IFC products, including those
-    # for which the Viewer did not obtain geometry.
     expected_ids=set()
     for p in products:
         if p is None:
             continue
         try:
+            if p.is_a('IfcOpeningElement') or p.is_a('IfcGrid'):
+                continue
+            if getattr(p, 'Representation', None) is None:
+                continue
             owner=p
             parent=logical_parent(p)
             if parent is not None and (
@@ -308,8 +310,15 @@ def load_ifc(path, progress=None):
         progress(phase="geometry", processed=0, total=total,
                  message=f"Przygotowuję geometrię: 0/{total}")
 
+    opening_elements=[]
+    try:
+        opening_elements=list(model.by_type('IfcOpeningElement'))
+    except Exception:
+        opening_elements=[]
+
     iterator=ifcopenshell.geom.iterator(
-        settings, model, max(1, min(8, os.cpu_count() or 1))
+        settings, model, max(1, min(8, os.cpu_count() or 1)),
+        exclude=opening_elements or None
     )
 
     if progress:
@@ -344,11 +353,29 @@ def load_ifc(path, progress=None):
                     ):
                         owner=parent
                     owner_id=int(owner.id())
-                    bucket=buckets.setdefault(owner_id, {'el':owner,'verts':[],'faces':[],'sourceIds':set()})
+                    bucket=buckets.setdefault(owner_id, {'el':owner,'verts':[],'faces':[],'faceAlphas':[],'sourceIds':set()})
                     bucket['sourceIds'].add(eid)
                     local_offset=len(bucket['verts'])//3
                     bucket['verts'].extend(vs)
                     bucket['faces'].extend([int(x)+local_offset for x in fs])
+
+                    # IfcOpenShell exposes visual styles per triangle. IFC transparency
+                    # uses 0=opaque and 1=fully transparent, so viewport alpha is 1-t.
+                    mats=list(getattr(geom,'materials',[]) or [])
+                    mat_ids=list(getattr(geom,'material_ids',[]) or [])
+                    tri_count=len(fs)//3
+                    for tri_i in range(tri_count):
+                        alpha=1.0
+                        try:
+                            mid=int(mat_ids[tri_i]) if tri_i < len(mat_ids) else -1
+                            if 0 <= mid < len(mats):
+                                mat=mats[mid]
+                                if bool(getattr(mat,'has_transparency',False)):
+                                    tr=float(getattr(mat,'transparency',0.0) or 0.0)
+                                    alpha=max(0.06,min(1.0,1.0-tr))
+                        except Exception:
+                            alpha=1.0
+                        bucket['faceAlphas'].append(alpha)
             except Exception as exc:
                 print(f"Geometry warning for iterator item {processed}: {exc}")
             if progress:
@@ -368,6 +395,7 @@ def load_ifc(path, progress=None):
         info['indexStart']=len(faces)
         info['indexCount']=len(fs)
         info['sourceIds']=sorted(bucket.get('sourceIds',[]))
+        info['faceAlphas']=[round(float(a),4) for a in bucket.get('faceAlphas',[])][:len(fs)//3]
         verts.extend(vs)
         faces.extend([int(x)+offset for x in fs])
         objects.append(info)
@@ -390,6 +418,7 @@ def load_ifc(path, progress=None):
             info['indexStart']=len(faces)
             info['indexCount']=len(fs)
             info['sourceIds']=[sid]
+            info['faceAlphas']=[1.0]*(len(fs)//3)
             verts.extend(vs)
             faces.extend([int(x)+offset for x in fs])
             objects.append(info)
