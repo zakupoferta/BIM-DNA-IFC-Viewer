@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-store"><title>BIM DNA IFC Viewer 5.6.2</title>
+<meta http-equiv="Cache-Control" content="no-store"><title>BIM DNA IFC Viewer 5.6.3</title>
 <style>
 *{box-sizing:border-box}html,body{height:100%;margin:0;background:#eaf0f6;color:#182536;font-family:Segoe UI,Arial,sans-serif;overflow:hidden}
 body{display:grid;grid-template-rows:48px 1fr}header{display:flex;align-items:center;gap:8px;padding:0 12px;background:rgba(248,251,254,.94);border-bottom:1px solid #cbd5e1;box-shadow:0 2px 12px rgba(31,50,70,.08);min-width:0}
@@ -14,7 +14,7 @@ aside{background:rgba(247,250,253,.96);border-right:1px solid #cbd5e1;overflow:a
 #progressPanel{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:min(520px,70%);z-index:5;display:none;padding:9px 12px;border:1px solid #c4d1de;border-radius:9px;background:rgba(255,255,255,.94);box-shadow:0 8px 30px #0008}.progressTrack{height:9px;background:#dbe5ee;border-radius:8px;overflow:hidden}.progressBar{height:100%;width:0;background:#3b8edb;transition:width .2s ease}.progressText{margin-top:6px;font-size:11px;color:#60758a;text-align:center}
 .modalBack{position:fixed;inset:0;background:#0005;z-index:50;display:none;align-items:center;justify-content:center}.modalCard{width:min(760px,90vw);max-height:84vh;overflow:auto;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 20px 60px #0005;padding:16px}.modalHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.scoreBar{height:18px;background:#e6edf4;border-radius:9px;overflow:hidden}.scoreFill{height:100%;background:#5b8fc7}.auditList{max-height:260px;overflow:auto;border:1px solid #d7e0e8;border-radius:7px;padding:6px;margin-top:6px}.auditRow{display:block;padding:5px;border-bottom:1px solid #edf1f5}.auditRow:last-child{border-bottom:0}.dnaGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.dnaCard{border:1px solid #d7e0e8;border-radius:9px;padding:11px;background:#f8fbfd}.dnaCard h4{margin:0 0 5px;font-size:13px;color:#20364d}.dnaValue{font-size:22px;font-weight:700;color:#245f94;margin:3px 0}.dnaNote{font-size:11px;color:#687d92;line-height:1.35}.dnaStats{margin-top:8px;font-size:11px;line-height:1.55}@media(max-width:700px){.dnaGrid{grid-template-columns:1fr}}</style></head>
 <body>
-<header><div class="logo">BIM DNA <i>IFC Viewer 5.6.2</i></div><label for="file">Otwórz IFC</label><input id="file" type="file" accept=".ifc"><button id="fit">Dopasuj</button><span class="toolbarLabel">Rzut:</span><button id="persp" class="modeBtn active">Perspektywa</button><button id="ortho" class="modeBtn">Aksonometria</button><span id="orthoViews" class="viewBtns" style="display:none"><button id="iso">Izometria</button><button id="top">Góra</button><button id="front">Przód</button><button id="back">Tył</button><button id="left">Lewo</button><button id="right">Prawo</button><button id="bottom">Dół</button></span><button id="reset">Reset</button><div id="status">Gotowy — IfcOpenShell</div></header>
+<header><div class="logo">BIM DNA <i>IFC Viewer 5.6.3</i></div><label for="file">Otwórz IFC</label><input id="file" type="file" accept=".ifc"><button id="fit">Dopasuj</button><span class="toolbarLabel">Rzut:</span><button id="persp" class="modeBtn active">Perspektywa</button><button id="ortho" class="modeBtn">Aksonometria</button><span id="orthoViews" class="viewBtns" style="display:none"><button id="iso">Izometria</button><button id="top">Góra</button><button id="front">Przód</button><button id="back">Tył</button><button id="left">Lewo</button><button id="right">Prawo</button><button id="bottom">Dół</button></span><button id="reset">Reset</button><div id="status">Gotowy — IfcOpenShell</div></header>
 <main>
 <aside>
 <div id="drop" class="drop"><b>Przeciągnij plik IFC tutaj</b><div class="small">IfcOpenShell • IFC2X3 / IFC4</div></div>
@@ -24,7 +24,7 @@ aside{background:rgba(247,250,253,.96);border-right:1px solid #cbd5e1;overflow:a
 </aside>
 <section id="viewport">
 <canvas id="c"></canvas><div id="progressPanel"><div class="progressTrack"><div id="progressBar" class="progressBar"></div></div><div id="progressText" class="progressText">Przygotowuję geometrię IFC…</div></div>
-<div id="empty" class="empty"><div><strong>BIM DNA — IFC Viewer 5.6.2</strong>Wczytaj model IFC. Geometrię przygotuje IfcOpenShell.</div></div>
+<div id="empty" class="empty"><div><strong>BIM DNA — IFC Viewer 5.6.3</strong>Wczytaj model IFC. Geometrię przygotuje IfcOpenShell.</div></div>
 <div class="dna"><b>BIM DNA</b><div class="small">Profil informacyjny modelu</div><div>Uzupełnienie właściwości <span id="density">—</span></div><div class="bar"><div id="fill" class="fill"></div></div><div class="small">wartości w zdefiniowanych Psetach</div></div>
 </section>
 <aside class="right"><h3>Element</h3><div id="props" class="small">Kliknij element. Zaznaczony element możesz ukryć lub izolować.</div>
@@ -104,25 +104,30 @@ function normalizeGeometry(){
 }
 
 function renderDiag(name){const n=v=>Number(v||0).toLocaleString();$('diag').innerHTML='Plik: <b>'+escapeHtml(name)+'</b><br>Schemat IFC: <b>'+escapeHtml(model.schema)+'</b><br>Encje IFC: <b>'+n(model.entityCount)+'</b><br>Produkty IFC w pliku: <b>'+n(model.productCount)+'</b><br>Obiekty logiczne 3D: <b>'+n((model.objects||[]).length)+'</b><br>Wierzchołki: <b>'+n(model.vertexCount)+'</b><br>Trójkąty: <b>'+n(model.triangleCount)+'</b><br>Zakres XYZ: <b>znormalizowany</b>';const dnaFill=Number((model.dnaInformation||{}).filledPct||0);$('density').textContent=dnaFill.toFixed(1)+'%';$('fill').style.width=Math.min(100,Math.max(0,dnaFill))+'%';$('geom').innerHTML='<span class="ok">IfcOpenShell wygenerował mesh 3D.</span><br>Elementy: <b>'+n(model.geometryProductCount)+'</b><br>Trójkąty: <b>'+n(model.triangleCount)+'</b><br>Tryb renderowania: <b>WebGL + oświetlenie • powierzchnie dwustronne</b><br><span style="opacity:.75">Powierzchnie IFC są renderowane z obu stron, aby nie ukrywać terenu/meshy o odwróconej orientacji ścian.</span>'}
+function displayIfcClass(type){
+ const t=type||'IfcProduct';
+ return t==='IfcWallStandardCase'?'IfcWall':t
+}
+function classMatchesDisplay(rawType,displayType){return displayIfcClass(rawType)===displayType}
 function renderTypes(){
  if(!model)return;
  const q=$('search').value.trim().toLowerCase();
  const counts={};
  for(const o of model.objects||[]){
-   const t=o.type||'IfcProduct';
+   const t=displayIfcClass(o.type);
    counts[t]=(counts[t]||0)+1;
  }
  const a=Object.entries(counts).filter(([k])=>!q||k.toLowerCase().includes(q)).sort((a,b)=>b[1]-a[1]);
  $('types').innerHTML=a.slice(0,200).map(([k,v])=>'<div class="row '+(selectedClass===k?'sel':'')+'" data-type="'+escapeAttr(k)+'"><span>'+escapeHtml(k)+'</span><span class="badge">'+Number(v).toLocaleString()+'</span></div>').join('')+
- '<div class="small" style="padding:8px 7px;border-top:1px solid #d9e2ea;margin-top:5px"><b>Razem obiektów logicznych IFC: '+(model.objects||[]).length.toLocaleString()+'</b><br><span style="opacity:.72">Lista grupuje geometrię części składowych pod obiektem nadrzędnym.</span></div>';
+ '<div class="small" style="padding:8px 7px;border-top:1px solid #d9e2ea;margin-top:5px"><b>Razem obiektów logicznych IFC: '+(model.objects||[]).length.toLocaleString()+'</b><br><span style="opacity:.72">Lista grupuje geometrię części składowych pod obiektem nadrzędnym. IfcWallStandardCase jest prezentowany łącznie jako IfcWall.</span></div>';
  document.querySelectorAll('.row[data-type]').forEach(el=>el.onclick=()=>selectIfcClass(el.dataset.type))
 }
 function dnaMetrics(){
- const cat=model.productCatalog||[],total=cat.length||1;
- const proxy=cat.filter(p=>/^(IfcBuildingElementProxy|IfcProxy)$/i.test(p.type||'')).length;
- const generic=cat.filter(p=>!p.type||p.type==='IfcProduct').length;
+ const logical=model.objects||[],total=logical.length||1;
+ const proxy=logical.filter(o=>/^(IfcBuildingElementProxy|IfcProxy)$/i.test(o.type||'')).length;
+ const generic=logical.filter(o=>!o.type||o.type==='IfcProduct').length;
  const issues=semanticIssues().length;
- return {cat,total,proxy,proxyPct:100*proxy/total,generic,issues,info:model.dnaInformation||{},geometry:model.dnaGeometry||{}}
+ return {logical,total,proxy,proxyPct:100*proxy/total,generic,issues,info:model.dnaInformation||{},geometry:model.dnaGeometry||{}}
 }
 function dnaNum(v,d=1){const n=Number(v||0);return Number.isFinite(n)?n.toFixed(d):'0.0'}
 function renderDnaQuality(open=false){
@@ -135,7 +140,7 @@ function openDnaModal(){
  const examples=(i.classGapExamples||[]).slice(0,30).map(x=>'<div class="auditRow"><b>'+escapeHtml(x.ifcClass||'—')+'</b> · '+escapeHtml(x.property||'—')+'<br><span class="small">uzupełnione: '+Number(x.filled||0)+' / '+Number(x.total||0)+' · brak/puste: '+Number(x.missingOrEmpty||0)+'</span></div>').join('');
  const infoCard='<div class="dnaCard"><h4>Information Density and Completeness</h4><div class="dnaValue">'+dnaNum(i.avgNonEmptyPerProduct,1)+'</div><div class="dnaNote">średnia liczba wypełnionych właściwości Pset na produkt IFC</div><div class="dnaStats">Zdefiniowane właściwości / produkt: <b>'+dnaNum(i.avgDefinedPerProduct,1)+'</b><br>Wypełnione spośród zdefiniowanych: <b>'+dnaNum(i.filledPct,1)+'%</b><br>Produkty z co najmniej jedną właściwością: <b>'+Number(i.productsWithProperties||0)+' / '+Number(i.productsAnalyzed||0)+'</b><br>Brakujące lub puste wartości wskazane przez porównanie obiektów tej samej klasy: <b>'+Number(i.classGapOccurrences||0)+'</b><br>Właściwości zdefiniowane w klasie, lecz nigdzie nieuzupełnione: <b>'+Number(i.alwaysEmptyGroups||0)+'</b></div></div>';
  const semanticCard='<div class="dnaCard"><h4>Semantic Diagnostics</h4><div class="dnaValue">'+m.issues+'</div><div class="dnaNote">potencjalnych niespójności klasyfikacyjnych wymagających weryfikacji</div><div class="dnaStats">Elementy o ogólnej klasie IfcProduct / bez klasy: <b>'+m.generic+'</b><br>Diagnostyka wykorzystuje dostępne oznaczenia i reguły interpretacji; wynik jest wskazaniem do kontroli, nie automatycznym błędem.</div></div>';
- const proxyCard='<div class="dnaCard"><h4>Proxy Elements Ratio</h4><div class="dnaValue">'+m.proxyPct.toFixed(1)+'%</div><div class="dnaNote">udział IfcBuildingElementProxy / IfcProxy w analizowanych produktach IFC</div><div class="dnaStats">Proxy: <b>'+m.proxy+' / '+m.total+'</b><br>Wysoki udział może wskazywać na ograniczoną semantykę lub sposób eksportu, ale sam w sobie nie oznacza błędu.</div></div>';
+ const proxyCard='<div class="dnaCard"><h4>Proxy Elements Ratio</h4><div class="dnaValue">'+m.proxyPct.toFixed(1)+'%</div><div class="dnaNote">udział logicznych IfcBuildingElementProxy / IfcProxy w obiektach 3D Viewera</div><div class="dnaStats">Proxy: <b>'+m.proxy+' / '+m.total+'</b><br>Do wskaźnika nie są wliczane Proxy będące częściami składowymi obiektu nadrzędnego. Wysoki udział może wskazywać na ograniczoną semantykę lub sposób eksportu, ale sam w sobie nie oznacza błędu.</div></div>';
  const geometryCard='<div class="dnaCard"><h4>Object–Geometry Association</h4><div class="dnaValue">'+Number(g.logicalObjects||0)+'</div><div class="dnaNote">logicznych obiektów powiązanych z geometrią w Viewerze</div><div class="dnaStats">Geometria bezpośrednia: <b>'+Number(g.directObjects||0)+'</b><br>Geometria poprzez części składowe: <b>'+Number(g.viaPartsObjects||0)+'</b><br>Elementy składowe wnoszące geometrię do obiektu nadrzędnego: <b>'+Number(g.componentContributors||0)+'</b><br>Produkty bez odnalezionego powiązania 3D w Viewerze: <b>'+Number(g.unassociatedProducts||0)+'</b><br><span class="small">Brak powiązania 3D nie jest automatycznie błędem — część produktów IFC może nie posiadać własnej reprezentacji geometrycznej.</span></div></div>';
  let detail='';
  if(examples) detail='<details style="margin-top:12px"><summary><b>Przykłady niespójnego uzupełnienia właściwości w obrębie tej samej klasy</b></summary><div class="auditList">'+examples+'</div><div class="small" style="margin-top:5px">Pokazano maksymalnie 30 przypadków. Są to kandydaci do weryfikacji, nie formalne braki względem wymagań informacyjnych.</div></details>';
@@ -219,9 +224,35 @@ canvas.addEventListener('pointerdown',e=>{dragging=true;moved=false;pan=e.shiftK
 canvas.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;if(Math.abs(e.clientX-downX)+Math.abs(e.clientY-downY)>4)moved=true;lastX=e.clientX;lastY=e.clientY;if(pan){const scale=dist*.0017;target[0]-=dx*scale*Math.cos(yaw);target[2]+=dx*scale*Math.sin(yaw);target[1]+=dy*scale}else{yaw+=dx*.008;pitch=Math.max(-1.52,Math.min(1.52,pitch+dy*.008))}renderOnce()});
 canvas.addEventListener('pointerup',e=>{dragging=false;canvas.classList.remove('drag');if(!moved&&e.button===0&&!e.shiftKey)pick(e.clientX,e.clientY)});
 canvas.addEventListener('wheel',e=>{e.preventDefault();if(projection==='orthographic'){dist*=Math.exp(e.deltaY*.001);dist=Math.max(.35,Math.min(12,dist));}else{dist*=Math.exp(e.deltaY*.001);dist=Math.max(.35,Math.min(12,dist));}renderOnce()},{passive:false});canvas.addEventListener('dblclick',fit);
-function indicesOfClass(type){const out=[],wanted=new Set((model.productCatalog||[]).filter(p=>p.type===type).map(p=>p.id));if(!model)return out;model.objects.forEach((o,i)=>{if((o.type||'IfcProduct')===type){out.push(i);return}const src=Array.isArray(o.sourceIds)?o.sourceIds:[];if(src.some(id=>wanted.has(id)))out.push(i)});return [...new Set(out)]}
-function selectIfcClass(type){selectedClass=type;const ids=indicesOfClass(type);const all=(model.productCatalog||[]).filter(p=>p.type===type);const logical=(model.objects||[]).filter(o=>(o.type||'IfcProduct')===type).length;$('classTools').style.display='block';$('classTitle').textContent=type;$('classCount').textContent=logical+' obiektów logicznych'+(all.length!==logical?' • '+all.length+' encji tej klasy w pliku IFC':'');const s=$('reassignClass');if(s&&model.productClasses){s.innerHTML=model.productClasses.map(x=>'<option value="'+escapeAttr(x)+'">'+escapeHtml(x)+'</option>').join('');if(model.productClasses.includes(type))s.value=type}renderTypes()}
-$('selectWholeClass').onclick=()=>{const all=(model.productCatalog||[]).filter(p=>p.type===selectedClass);semanticClassSelection=new Set(all.map(p=>p.id));classSelection=new Set(indicesOfClass(selectedClass));selected=-1;props(-1);renderOnce();$('status').textContent='Wybrano '+all.length+' elementów IFC klasy '+selectedClass+' • w 3D zaznaczono '+classSelection.size};
+function indicesOfClass(type){
+ const out=[];
+ if(!model)return out;
+ (model.objects||[]).forEach((o,i)=>{if(classMatchesDisplay(o.type,type))out.push(i)});
+ return out
+}
+function logicalObjectsOfClass(type){
+ return (model.objects||[]).filter(o=>classMatchesDisplay(o.type,type))
+}
+function selectIfcClass(type){
+ selectedClass=type;
+ const logical=logicalObjectsOfClass(type);
+ $('classTools').style.display='block';
+ $('classTitle').textContent=type;
+ $('classCount').textContent=logical.length+' obiektów logicznych'+(type==='IfcWall'?' (IfcWall + IfcWallStandardCase)':'');
+ const s=$('reassignClass');
+ if(s&&model.productClasses){
+   s.innerHTML=model.productClasses.map(x=>'<option value="'+escapeAttr(x)+'">'+escapeHtml(x)+'</option>').join('');
+   if(model.productClasses.includes(type))s.value=type
+ }
+ renderTypes()
+}
+$('selectWholeClass').onclick=()=>{
+ const logical=logicalObjectsOfClass(selectedClass);
+ semanticClassSelection=new Set(logical.map(o=>o.id));
+ classSelection=new Set(indicesOfClass(selectedClass));
+ selected=-1;props(-1);renderOnce();
+ $('status').textContent='Wybrano '+logical.length+' obiektów logicznych klasy '+selectedClass
+};
 $('clearClassSelection').onclick=()=>{classSelection.clear();semanticClassSelection.clear();selected=-1;props(-1);renderOnce();$('status').textContent='Wyczyszczono zaznaczenie klasy'};
 $('isolateWholeClass').onclick=()=>{const ids=indicesOfClass(selectedClass),keep=new Set(ids);hidden.clear();isolated=-1;classSelection=new Set(ids);model.objects.forEach((o,i)=>{if(!keep.has(i))hidden.add(i)});renderOnce();$('status').textContent='Izolowano '+ids.length+' obiektów 3D klasy '+selectedClass};
 $('hideWholeClass').onclick=()=>{const ids=indicesOfClass(selectedClass);ids.forEach(i=>hidden.add(i));classSelection.clear();renderOnce();$('status').textContent='Ukryto '+ids.length+' obiektów 3D klasy '+selectedClass};
