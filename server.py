@@ -133,6 +133,8 @@ def build_dna_information(products):
     for p in products:
         try:
             cls=p.is_a()
+            if cls == 'IfcWallStandardCase':
+                cls = 'IfcWall'
         except Exception:
             cls='IfcProduct'
         state=_property_state(p)
@@ -145,6 +147,8 @@ def build_dna_information(products):
     gap_groups=0
     gap_occurrences=0
     always_empty_groups=0
+    comparable_slots=0
+    comparable_filled=0
     examples=[]
 
     for cls, rows in by_class.items():
@@ -159,6 +163,9 @@ def build_dna_information(products):
             filled=sum(1 for row in rows if row.get(key, False))
             # If at least one peer has a value and another peer does not,
             # flag the difference as a candidate for verification, not an error.
+            if filled > 0:
+                comparable_slots += n
+                comparable_filled += filled
             if filled > 0 and filled < n:
                 gap_groups += 1
                 gap_occurrences += (n - filled)
@@ -175,6 +182,7 @@ def build_dna_information(products):
 
     total=max(1, len(products))
     filled_pct=(100.0 * nonempty_total / defined_total) if defined_total else 0.0
+    peer_consistency_pct=(100.0 * comparable_filled / comparable_slots) if comparable_slots else filled_pct
     return {
         'productsAnalyzed':len(products),
         'productsWithProperties':products_with_properties,
@@ -184,6 +192,9 @@ def build_dna_information(products):
         'avgDefinedPerProduct':round(defined_total/total, 2),
         'avgNonEmptyPerProduct':round(nonempty_total/total, 2),
         'filledPct':round(filled_pct, 1),
+        'peerConsistencyPct':round(peer_consistency_pct, 1),
+        'comparableSlots':comparable_slots,
+        'comparableFilled':comparable_filled,
         'classGapGroups':gap_groups,
         'classGapOccurrences':gap_occurrences,
         'alwaysEmptyGroups':always_empty_groups,
@@ -192,9 +203,8 @@ def build_dna_information(products):
 
 
 def build_dna_geometry(products, objects):
-    """Describe how semantic IFC products are associated with Viewer geometry."""
+    """Describe geometry coverage at the logical-object level."""
     owner_ids=set()
-    source_ids=set()
     direct_owners=0
     via_parts_owners=0
 
@@ -215,28 +225,35 @@ def build_dna_geometry(products, objects):
                 direct_owners += 1
             elif src:
                 via_parts_owners += 1
-        source_ids.update(src)
 
-    product_ids=set()
+    # Build the same logical ownership set for all IFC products, including those
+    # for which the Viewer did not obtain geometry.
+    expected_ids=set()
     for p in products:
+        if p is None:
+            continue
         try:
-            product_ids.add(int(p.id()))
+            owner=p
+            parent=logical_parent(p)
+            if parent is not None and (
+                p.is_a('IfcBuildingElementPart') or parent.is_a('IfcCurtainWall')
+            ):
+                owner=parent
+            expected_ids.add(int(owner.id()))
         except Exception:
             pass
 
-    contributors=(source_ids - owner_ids) & product_ids
-    associated=(owner_ids | source_ids) & product_ids
-    unassociated=product_ids - associated
+    associated=owner_ids & expected_ids
+    unassociated=expected_ids - owner_ids
 
     return {
-        'productsAnalyzed':len(product_ids),
+        'logicalExpected':len(expected_ids),
         'logicalObjects':len(owner_ids),
         'directObjects':direct_owners,
         'viaPartsObjects':via_parts_owners,
-        'componentContributors':len(contributors),
-        'associatedProducts':len(associated),
-        'unassociatedProducts':len(unassociated),
-        'associationPct':round(100.0*len(associated)/max(1,len(product_ids)), 1)
+        'associatedLogical':len(associated),
+        'unassociatedLogical':len(unassociated),
+        'associationPct':round(100.0*len(associated)/max(1,len(expected_ids)), 1)
     }
 
 
@@ -420,7 +437,20 @@ def load_ifc(path, progress=None):
             'hasGeometry':pid in geometry_ids
         })
 
-    dna_information=build_dna_information(products)
+    logical_elements=[]
+    seen_logical=set()
+    for o in objects:
+        try:
+            oid=int(o.get('id',0) or 0)
+            if not oid or oid in seen_logical:
+                continue
+            el=model.by_id(oid)
+            if el is not None:
+                logical_elements.append(el)
+                seen_logical.add(oid)
+        except Exception:
+            pass
+    dna_information=build_dna_information(logical_elements)
     dna_geometry=build_dna_geometry(products, objects)
 
     return {
