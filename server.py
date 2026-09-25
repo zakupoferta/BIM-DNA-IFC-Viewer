@@ -316,12 +316,16 @@ def load_ifc(path, progress=None):
                 except Exception: el=None
                 if vs and fs and el is not None and el.is_a('IfcProduct'):
                     owner=el
-                    # Archicad often exports visible sub-geometry as IfcBuildingElementPart.
-                    # Roll that geometry up to the logical parent product for selection.
-                    if el.is_a('IfcBuildingElementPart'):
-                        parent=logical_parent(el)
-                        if parent is not None:
-                            owner=parent
+                    # Archicad may export one logical element as geometry of child products.
+                    # BuildingElementPart is always rolled up as before. In addition, child
+                    # IfcMember / IfcPlate / other decomposed products belonging to an
+                    # IfcCurtainWall are rolled up to the curtain wall so picking/highlight
+                    # operates on the whole logical curtain wall, not on a single panel.
+                    parent=logical_parent(el)
+                    if parent is not None and (
+                        el.is_a('IfcBuildingElementPart') or parent.is_a('IfcCurtainWall')
+                    ):
+                        owner=parent
                     owner_id=int(owner.id())
                     bucket=buckets.setdefault(owner_id, {'el':owner,'verts':[],'faces':[],'sourceIds':set()})
                     bucket['sourceIds'].add(eid)
